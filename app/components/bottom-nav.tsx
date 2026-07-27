@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import type { Session } from "next-auth"
-import { Home, Search, SquarePlus, Info, User } from "lucide-react"
+import { Home, Search, SquarePlus, Star, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Five items so Publish lands dead center with justify-around (four
@@ -14,7 +14,7 @@ const items = [
   { href: "/feed", label: "Home", icon: Home },
   { href: "/search", label: "Search", icon: Search },
   { href: "/publish", label: "Publish", icon: SquarePlus },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/favorites", label: "Favorites", icon: Star },
   { href: "me", label: "Me", icon: User },
 ]
 

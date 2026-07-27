@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { getNote } from "@/lib/api"
 import { RenderTree } from "@/app/components/render-tree"
+import { FavoriteButton } from "@/app/components/favorite-button"
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -20,11 +21,12 @@ export default async function NotePage({
   if (!note) notFound()
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <div className="mb-8 border-b border-border pb-6">
+    <main className="mx-auto max-w-3xl px-6 py-16">
+      <div className="mb-8 flex items-center justify-between border-b border-border pb-6">
         <p className="text-sm text-muted-foreground">
           {note.author} · {formatDate(note.published_at)}
         </p>
+        <FavoriteButton note={note} />
       </div>
       <RenderTree node={note.tree} />
     </main>

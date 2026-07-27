@@ -14,7 +14,10 @@ export async function RenderTree({ node }: { node: TreeNode }) {
 
   switch (node.type) {
     case "root":
-      return <div className="prose">{children}</div>
+      // max-w-none: prose's own ~65ch cap would otherwise double-constrain
+      // the column independently of whatever width the page around it
+      // chooses — the page's own max-w is the single source of truth.
+      return <div className="prose max-w-none">{children}</div>
     case "heading": {
       const Tag = `h${node.depth ?? 1}` as keyof React.JSX.IntrinsicElements
       return <Tag>{children}</Tag>
@@ -34,6 +37,12 @@ export async function RenderTree({ node }: { node: TreeNode }) {
       return <li>{children}</li>
     case "text":
       return <>{node.text}</>
+    case "bold":
+      return <strong>{children}</strong>
+    case "italic":
+      return <em>{children}</em>
+    case "inlineCode":
+      return <code>{node.text}</code>
     case "inlineMath":
       return (
         <span

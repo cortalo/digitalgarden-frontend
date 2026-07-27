@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import type { Session } from "next-auth"
-import { User } from "lucide-react"
+import { Star, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SearchForm } from "@/app/components/search-form"
 
@@ -17,9 +17,9 @@ export function TopNav({ session }: { session: Session | null }) {
         </Link>
         <SearchForm className="max-w-sm flex-1" />
         <div className="ml-auto flex items-center gap-4">
-          <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">
-            About
-          </Link>
+          <Button render={<Link href="/favorites" aria-label="Favorites" />} nativeButton={false} variant="ghost" size="icon">
+            <Star className="size-5" />
+          </Button>
           <Button render={<Link href="/publish" />} nativeButton={false} size="sm">
             Publish
           </Button>
