@@ -3,6 +3,11 @@ import { TreeNode } from "./tree"
 // Phase 2 — real backend (see CLAUDE.md's Data Access Rule).
 const BASE = process.env.API_URL ?? "http://localhost:8080"
 
+// publishNote() runs in the browser (called from PublishClient, a client
+// component — see CLAUDE.md's Auth Pattern), so it needs the publicly
+// exposed variant of the API URL rather than the server-only one above.
+const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"
+
 export interface NoteSummary {
   id: number
   title: string
@@ -48,4 +53,31 @@ export async function searchNotes(query: string): Promise<NoteSummary[]> {
       note.title.toLowerCase().includes(q) ||
       note.excerpt.toLowerCase().includes(q)
   )
+}
+
+export interface PublishInput {
+  title: string
+  markdown: string
+  slug?: string
+  excerpt?: string
+}
+
+// POST /api/notes, behind the backend's RequireAuth — token is the
+// session's backendToken (the JWT digitalgarden-backend's own login
+// issued, not Google's). v1 is text-only, matching CLAUDE.md's Upload
+// scope: no attachment upload yet.
+export async function publishNote(token: string, input: PublishInput): Promise<Note> {
+  const res = await fetch(`${PUBLIC_BASE}/api/notes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `Publish failed (${res.status})`)
+  }
+  return res.json()
 }
