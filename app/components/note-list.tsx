@@ -30,14 +30,14 @@ export function NoteList({ notes }: { notes: NoteSummary[] }) {
         {notes.map((note) => (
           <Link
             key={note.id}
-            href={`/notes/${note.id}`}
+            href={`/notes/${note.slug}`}
             className="mb-4 block break-inside-avoid"
           >
             <Card>
               <CardHeader>
                 <CardTitle>{note.title}</CardTitle>
                 <CardDescription>
-                  {note.author} · {formatDate(note.publishedAt)}
+                  {note.author} · {formatDate(note.published_at)}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -60,7 +60,7 @@ export function NoteList({ notes }: { notes: NoteSummary[] }) {
 function NewspaperRow({ note, lead }: { note: NoteSummary; lead: boolean }) {
   return (
     <Link
-      href={`/notes/${note.id}`}
+      href={`/notes/${note.slug}`}
       className="group border-b border-border py-6 first:pt-0 last:border-b-0"
     >
       <h2
@@ -73,7 +73,7 @@ function NewspaperRow({ note, lead }: { note: NoteSummary; lead: boolean }) {
         {note.title}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        {note.author} · {formatDate(note.publishedAt)}
+        {note.author} · {formatDate(note.published_at)}
       </p>
       <p className={lead ? "mt-3 text-lg text-foreground/80" : "mt-2 text-base text-foreground/80"}>
         {note.excerpt}

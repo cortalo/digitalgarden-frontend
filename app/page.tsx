@@ -1,16 +1,8 @@
-import { RenderTree } from "@/app/components/render-tree"
-import { getNote } from "@/lib/api"
+import { redirect } from "next/navigation"
 
-// Step 1 validation: render a hardcoded tree (mocked in lib/api.ts,
-// matching digitalgarden-backend's TestParse_HelloWorld output exactly)
-// by walking it through RenderTree. Proves the tree shape is something
-// a frontend can sanely consume before any real backend/auth/DB exists.
-export default async function Home() {
-  const tree = await getNote()
-
-  return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <RenderTree node={tree} />
-    </main>
-  )
+// Superseded by /feed + /notes/[slug] (see CLAUDE.md's Project
+// Structure) — no real landing page designed yet, so root just forwards
+// to the feed instead of leaving Step 1's now-broken validation page up.
+export default function Home() {
+  redirect("/feed")
 }
