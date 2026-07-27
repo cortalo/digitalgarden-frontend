@@ -148,10 +148,11 @@ export async function getNote(id: number): Promise<Note | null> {
 }
 ```
 
-**Phase 2 — real backend (developer writes this manually).** Replace
-only the function bodies in `lib/api.ts` with real `fetch()` calls
-against `digitalgarden-backend`'s API. Components and pages never change
-between phases.
+**Phase 2 — real backend (AI writes this too).** Once the backend has a
+real endpoint, replace only the function bodies in `lib/api.ts` with
+real `fetch()` calls against `digitalgarden-backend`'s API. Components
+and pages never change between phases — this whole file's functions are
+still AI-written, just swapped from mock data to live HTTP calls.
 
 ```typescript
 export async function getNote(id: number): Promise<Note | null> {

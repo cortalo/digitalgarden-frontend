@@ -1,10 +1,13 @@
+import katex from "katex"
 import { TreeNode } from "@/lib/tree"
+import { renderTikz } from "@/lib/tikz"
+import { highlightCode } from "@/lib/highlight"
 
 // Walks a TreeNode produced by the backend's markdown parser and
 // dispatches on node.type — this file should never need to know
 // anything about markdown syntax itself, only about the tree shape.
 // See CLAUDE.md: "What the backend API gives you."
-export function RenderTree({ node }: { node: TreeNode }) {
+export async function RenderTree({ node }: { node: TreeNode }) {
   const children = node.children?.map((child, i) => (
     <RenderTree key={i} node={child} />
   ))
@@ -31,6 +34,39 @@ export function RenderTree({ node }: { node: TreeNode }) {
       return <li>{children}</li>
     case "text":
       return <>{node.text}</>
+    case "inlineMath":
+      return (
+        <span
+          dangerouslySetInnerHTML={{
+            __html: katex.renderToString(node.text ?? "", {
+              displayMode: false,
+              throwOnError: false,
+            }),
+          }}
+        />
+      )
+    case "mathBlock":
+      return (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: katex.renderToString(node.text ?? "", {
+              displayMode: true,
+              throwOnError: false,
+            }),
+          }}
+        />
+      )
+    case "codeBlock": {
+      const html = await highlightCode(node.text ?? "", node.lang)
+      return <div dangerouslySetInnerHTML={{ __html: html }} />
+    }
+    case "tikzBlock": {
+      // Plugin node, same tier as Excalidraw will be: Go only extracts the
+      // raw TikZ source and tags the type (see CLAUDE.md's "Node
+      // rendering" section), compiling it to SVG is a frontend job.
+      const svg = await renderTikz(node.text ?? "")
+      return <div dangerouslySetInnerHTML={{ __html: svg }} />
+    }
     default:
       // An unrecognized node type should be visible, not silently
       // dropped — same reasoning as the backend's "unknown" fallback.
