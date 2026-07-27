@@ -6,6 +6,7 @@ export interface TreeNode {
   depth?: number
   text?: string
   lang?: string
+  href?: string
   ordered?: boolean
   children?: TreeNode[]
 }

@@ -43,6 +43,15 @@ export async function RenderTree({ node }: { node: TreeNode }) {
       return <em>{children}</em>
     case "inlineCode":
       return <code>{node.text}</code>
+    case "link":
+      // Arbitrary external URL from user-authored content — new tab,
+      // and noopener/noreferrer so the linked page can't reach back via
+      // window.opener.
+      return (
+        <a href={node.href} target="_blank" rel="noopener noreferrer">
+          {children}
+        </a>
+      )
     case "inlineMath":
       return (
         <span
