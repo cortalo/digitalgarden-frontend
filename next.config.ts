@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   // rewrites that path when it bundles the package, breaking the lookup —
   // this keeps it as a real require()'d Node module instead.
   serverExternalPackages: ["node-tikzjax"],
+  images: {
+    remotePatterns: [{ hostname: "lh3.googleusercontent.com" }],
+  },
 };
 
 export default nextConfig;

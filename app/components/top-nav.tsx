@@ -1,10 +1,14 @@
 import Link from "next/link"
+import Image from "next/image"
+import type { Session } from "next-auth"
 import { User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SearchForm } from "@/app/components/search-form"
 
 // Desktop-only header — mobile's equivalent actions live in BottomNav.
-export function TopNav() {
+// session is fetched once in the root layout (a Server Component) and
+// passed down, since auth() must never be called from a client component.
+export function TopNav({ session }: { session: Session | null }) {
   return (
     <header className="hidden border-b border-border lg:block">
       <div className="mx-auto flex max-w-4xl items-center gap-6 px-6 py-4">
@@ -20,12 +24,27 @@ export function TopNav() {
             Publish
           </Button>
           <Button
-            render={<Link href="/login" aria-label="Account" />}
+            render={
+              <Link
+                href={session ? "/profile" : "/login"}
+                aria-label={session ? "Profile" : "Sign in"}
+              />
+            }
             nativeButton={false}
             variant="ghost"
             size="icon"
           >
-            <User className="size-5" />
+            {session?.user?.image ? (
+              <Image
+                src={session.user.image}
+                alt={session.user.name ?? "avatar"}
+                width={20}
+                height={20}
+                className="rounded-full"
+              />
+            ) : (
+              <User className="size-5" />
+            )}
           </Button>
         </div>
       </div>
