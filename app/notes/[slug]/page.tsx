@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation"
-import { getNote } from "@/lib/api"
+import { Download } from "lucide-react"
+import { getNote, noteDownloadUrl } from "@/lib/api"
 import { RenderTree } from "@/app/components/render-tree"
 import { FavoriteButton } from "@/app/components/favorite-button"
+import { Button } from "@/components/ui/button"
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -26,7 +28,19 @@ export default async function NotePage({
         <p className="text-sm text-muted-foreground">
           {note.author} · {formatDate(note.published_at)}
         </p>
-        <FavoriteButton note={note} />
+        <div className="flex items-center gap-1">
+          <Button
+            render={<a href={noteDownloadUrl(note.slug)} download />}
+            nativeButton={false}
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+          >
+            <Download className="size-4" />
+            Download
+          </Button>
+          <FavoriteButton note={note} />
+        </div>
       </div>
       <RenderTree node={note.tree} />
     </main>

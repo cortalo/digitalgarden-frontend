@@ -55,6 +55,15 @@ export async function searchNotes(query: string): Promise<NoteSummary[]> {
   )
 }
 
+// GET /api/notes/:slug/download — not a fetch, just the URL a plain <a
+// href download> points at so the browser handles the download itself
+// (the backend sets Content-Disposition: attachment). Public, same as
+// getNote(). Uses the public base since it's followed directly by the
+// browser, not requested from our own server.
+export function noteDownloadUrl(slug: string): string {
+  return `${PUBLIC_BASE}/api/notes/${slug}/download`
+}
+
 export interface PublishInput {
   title: string
   markdown: string
