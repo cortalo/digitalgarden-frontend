@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { Suspense } from "react"
 import type { Session } from "next-auth"
 import { Star, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,9 @@ export function TopNav({ session }: { session: Session | null }) {
         <Link href="/feed" className="shrink-0 text-lg font-semibold">
           digitalgarden
         </Link>
-        <SearchForm className="max-w-sm flex-1" />
+        <Suspense fallback={<div className="max-w-sm flex-1" />}>
+          <SearchForm className="max-w-sm flex-1" />
+        </Suspense>
         <div className="ml-auto flex items-center gap-4">
           <Button render={<Link href="/favorites" aria-label="Favorites" />} nativeButton={false} variant="ghost" size="icon">
             <Star className="size-5" />

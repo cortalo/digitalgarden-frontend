@@ -56,18 +56,21 @@ export async function getNotes(limit?: number): Promise<NoteSummary[]> {
   return res.json()
 }
 
-// No search endpoint exists on the backend yet, so this fetches the feed
-// and filters client-side by title/excerpt substring match. Phase 1-style
-// mock behavior layered on otherwise-real Phase 2 data.
-export async function searchNotes(query: string): Promise<NoteSummary[]> {
-  const q = query.trim().toLowerCase()
+// A search result: the same card fields as NoteSummary, plus the
+// snippets showing where the keyword actually matched (title, author,
+// excerpt, and/or body — see the backend's noteservice.Search).
+export interface SearchHit extends NoteSummary {
+  snippets: string[]
+}
+
+// GET /api/notes/search?q=. Public, same access level as getNotes().
+export async function searchNotes(query: string): Promise<SearchHit[]> {
+  const q = query.trim()
   if (!q) return []
-  const notes = await getNotes(100)
-  return notes.filter(
-    (note) =>
-      note.title.toLowerCase().includes(q) ||
-      note.excerpt.toLowerCase().includes(q)
-  )
+  const url = new URL(`${BASE}/api/notes/search`)
+  url.searchParams.set("q", q)
+  const res = await fetch(url)
+  return res.json()
 }
 
 // GET /api/notes/:slug/download — not a fetch, just the URL a plain <a

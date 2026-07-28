@@ -16,6 +16,39 @@ function formatDate(iso: string): string {
   })
 }
 
+// A note as NoteList needs it: NoteSummary, plus optional search
+// snippets. /search passes SearchHit[] (NoteSummary + snippets); /feed
+// passes plain NoteSummary[] with no snippets. Where a snippet exists,
+// it replaces the excerpt so a search result shows *why* it matched
+// rather than always the same fixed excerpt.
+type ListableNote = NoteSummary & { snippets?: string[] }
+
+// previewLines: all of a search hit's snippets, or the plain excerpt as
+// a single line when there are none (the /feed case).
+function previewLines(note: ListableNote): string[] {
+  return note.snippets && note.snippets.length > 0 ? note.snippets : [note.excerpt]
+}
+
+// Snippets are the backend's raw OpenSearch highlight fragments — user-
+// authored field text (title/excerpt/content) with literal <em>...</em>
+// markers spliced in around the matched keyword, NOT html-escaped
+// otherwise. Never dangerouslySetInnerHTML this — a note's own title or
+// body could contain real markup and this would execute it (the same
+// stored-XSS shape as svgBlock). Instead split on the two known literal
+// tags ourselves and hand the pieces to React as plain text/elements, so
+// arbitrary content in a piece is always rendered inert, never parsed.
+function renderHighlighted(text: string) {
+  return text.split(/<em>(.*?)<\/em>/).map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="rounded-sm bg-primary/20 text-foreground">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  )
+}
+
 // Mobile: a two-column masonry of cards (CSS columns), Xiaohongshu-style.
 // Desktop: a single-column, newspaper-style list — hairline dividers
 // instead of card boxes, with the lead (first) note set larger. These are
@@ -23,7 +56,7 @@ function formatDate(iso: string): string {
 // conditional classes, since the two layouts are structurally different
 // (columns vs. a flex list), not just restyled. Shared by /feed and
 // /search so both present notes the same way.
-export function NoteList({ notes }: { notes: NoteSummary[] }) {
+export function NoteList({ notes }: { notes: ListableNote[] }) {
   return (
     <>
       <div className="columns-2 gap-4 lg:hidden">
@@ -40,8 +73,12 @@ export function NoteList({ notes }: { notes: NoteSummary[] }) {
                   {note.author} · {formatDate(note.published_at)}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{note.excerpt}</p>
+              <CardContent className="space-y-1">
+                {previewLines(note).map((line, i) => (
+                  <p key={i} className="text-sm text-muted-foreground">
+                    {renderHighlighted(line)}
+                  </p>
+                ))}
               </CardContent>
             </Card>
           </Link>
@@ -57,7 +94,7 @@ export function NoteList({ notes }: { notes: NoteSummary[] }) {
   )
 }
 
-function NewspaperRow({ note, lead }: { note: NoteSummary; lead: boolean }) {
+function NewspaperRow({ note, lead }: { note: ListableNote; lead: boolean }) {
   return (
     <Link
       href={`/notes/${note.slug}`}
@@ -75,9 +112,11 @@ function NewspaperRow({ note, lead }: { note: NoteSummary; lead: boolean }) {
       <p className="mt-1 text-sm text-muted-foreground">
         {note.author} · {formatDate(note.published_at)}
       </p>
-      <p className={lead ? "mt-3 text-lg text-foreground/80" : "mt-2 text-base text-foreground/80"}>
-        {note.excerpt}
-      </p>
+      <div className={lead ? "mt-3 space-y-1 text-lg text-foreground/80" : "mt-2 space-y-1 text-base text-foreground/80"}>
+        {previewLines(note).map((line, i) => (
+          <p key={i}>{renderHighlighted(line)}</p>
+        ))}
+      </div>
     </Link>
   )
 }
