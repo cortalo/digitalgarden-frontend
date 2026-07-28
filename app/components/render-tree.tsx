@@ -2,6 +2,7 @@ import katex from "katex"
 import { TreeNode } from "@/lib/tree"
 import { renderTikz } from "@/lib/tikz"
 import { highlightCode } from "@/lib/highlight"
+import { SvgBlock } from "@/app/components/svg-block"
 
 // Walks a TreeNode produced by the backend's markdown parser and
 // dispatches on node.type — this file should never need to know
@@ -85,6 +86,12 @@ export async function RenderTree({ node }: { node: TreeNode }) {
       const svg = await renderTikz(node.text ?? "")
       return <div dangerouslySetInnerHTML={{ __html: svg }} />
     }
+    case "svgBlock":
+      // Raw SVG markup from the user's note (Obsidian's SVG Editor
+      // plugin) — already renderable as-is, no compilation step like
+      // tikzBlock. Sanitized client-side in SvgBlock — see lib/sanitize.ts
+      // for why this can't happen here during server rendering.
+      return <SvgBlock text={node.text ?? ""} />
     default:
       // An unrecognized node type should be visible, not silently
       // dropped — same reasoning as the backend's "unknown" fallback.
