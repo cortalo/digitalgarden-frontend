@@ -19,13 +19,28 @@ export interface NoteSummary {
 }
 
 export interface Note extends NoteSummary {
+  author_user_id: number
   tree: TreeNode
+}
+
+// Shared between getNote()'s cache tag and the refresh action's
+// revalidateTag() call — both need to name the exact same tag.
+export function noteCacheTag(slug: string): string {
+  return `note:${slug}`
 }
 
 // GET /api/notes/:slug. Returns null on a 404 (no such note) rather than
 // throwing — the caller decides what to do (notFound(), etc).
+//
+// Cached indefinitely (force-cache, no time-based revalidate) — a note's
+// content never changes after publish except through the author's own
+// manual refresh, which calls revalidateTag(noteCacheTag(slug)) to
+// invalidate just this one entry. See app/notes/[slug]/page.tsx.
 export async function getNote(slug: string): Promise<Note | null> {
-  const res = await fetch(`${BASE}/api/notes/${slug}`)
+  const res = await fetch(`${BASE}/api/notes/${slug}`, {
+    cache: "force-cache",
+    next: { tags: [noteCacheTag(slug)] },
+  })
   if (res.status === 404) return null
   return res.json()
 }
