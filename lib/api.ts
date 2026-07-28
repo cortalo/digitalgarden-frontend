@@ -82,6 +82,15 @@ export function noteDownloadUrl(slug: string): string {
   return `${PUBLIC_BASE}/api/notes/${slug}/download`
 }
 
+// Same endpoint as noteDownloadUrl(), but actually fetched server-side
+// (rather than followed by the browser) to prefill the edit form's
+// markdown — so re-uploading a file on every edit is optional, not
+// required just to fix a typo in the title.
+export async function getNoteMarkdown(slug: string): Promise<string> {
+  const res = await fetch(`${BASE}/api/notes/${slug}/download`)
+  return res.text()
+}
+
 export interface PublishInput {
   title: string
   markdown: string
@@ -107,4 +116,43 @@ export async function publishNote(token: string, input: PublishInput): Promise<N
     throw new Error(body.error ?? `Publish failed (${res.status})`)
   }
   return res.json()
+}
+
+// PUT /api/notes/:slug, behind RequireAuth — a full replace, same body
+// shape as publishNote (see the backend's noteservice.Update: omitting
+// slug/excerpt keeps the existing value rather than clearing it).
+// currentSlug is the note being edited; input.slug (if set) is the new
+// slug to move it to.
+export async function updateNote(
+  token: string,
+  currentSlug: string,
+  input: PublishInput
+): Promise<Note> {
+  const res = await fetch(`${PUBLIC_BASE}/api/notes/${currentSlug}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `Update failed (${res.status})`)
+  }
+  return res.json()
+}
+
+// DELETE /api/notes/:slug, behind RequireAuth — hard delete, no undo.
+export async function deleteNote(token: string, slug: string): Promise<void> {
+  const res = await fetch(`${PUBLIC_BASE}/api/notes/${slug}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `Delete failed (${res.status})`)
+  }
 }
