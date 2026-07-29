@@ -8,6 +8,11 @@ import tex2svg from "node-tikzjax"
 let queue: Promise<unknown> = Promise.resolve()
 
 function renderTikzUncached(source: string): Promise<string> {
+  // Only fires on an actual cache miss (unstable_cache short-circuits
+  // before calling this on a hit) — check Runtime Logs for repeats of
+  // the same source with no new deploy in between to confirm Data
+  // Cache eviction as the cause of a slow page load.
+  console.log(`[tikz] compiling (cache miss), source length=${source.length}`)
   const result = queue.then(() => tex2svg(source))
   queue = result.catch(() => {})
   return result
