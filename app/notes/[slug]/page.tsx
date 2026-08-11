@@ -75,73 +75,78 @@ export default async function NotePage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <div className="mb-8 flex items-center justify-between border-b border-border pb-6">
-        <p className="text-sm text-muted-foreground">
-          {note.author} · {formatDate(note.published_at)}
-        </p>
-        <div className="flex items-center gap-1">
-          {isAuthor && (
-            <form action={refresh}>
-              <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
-                <RotateCw className="size-4" />
-                Refresh
-              </Button>
-            </form>
-          )}
-          <Button
-            render={<a href={noteDownloadUrl(note.slug)} download />}
-            nativeButton={false}
-            variant="ghost"
-            size="sm"
-            className="gap-1.5"
-          >
-            <Download className="size-4" />
-            Download
-          </Button>
-          {isAuthor && (
+      <div className="mb-8 border-b border-border pb-6">
+        <h1 className="mb-4 text-3xl font-semibold tracking-tight text-foreground">
+          {note.title}
+        </h1>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {note.author} · {formatDate(note.published_at)}
+          </p>
+          <div className="flex items-center gap-1">
+            {isAuthor && (
+              <form action={refresh}>
+                <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
+                  <RotateCw className="size-4" />
+                  Refresh
+                </Button>
+              </form>
+            )}
             <Button
-              render={<a href={`/notes/${note.slug}/edit`} />}
+              render={<a href={noteDownloadUrl(note.slug)} download />}
               nativeButton={false}
               variant="ghost"
               size="sm"
               className="gap-1.5"
             >
-              <Pencil className="size-4" />
-              Edit
+              <Download className="size-4" />
+              Download
             </Button>
-          )}
-          {isAuthor && (
-            <AlertDialog>
-              <AlertDialogTrigger
-                render={
-                  <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive">
-                    <Trash2 className="size-4" />
-                    Delete
-                  </Button>
-                }
-              />
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this note?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This permanently deletes &ldquo;{note.title}&rdquo;. This can&apos;t be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <form action={deleteAction}>
-                    <AlertDialogAction
-                      type="submit"
-                      className="w-full bg-destructive text-white hover:bg-destructive/90"
-                    >
+            {isAuthor && (
+              <Button
+                render={<a href={`/notes/${note.slug}/edit`} />}
+                nativeButton={false}
+                variant="ghost"
+                size="sm"
+                className="gap-1.5"
+              >
+                <Pencil className="size-4" />
+                Edit
+              </Button>
+            )}
+            {isAuthor && (
+              <AlertDialog>
+                <AlertDialogTrigger
+                  render={
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive">
+                      <Trash2 className="size-4" />
                       Delete
-                    </AlertDialogAction>
-                  </form>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          <FavoriteButton note={note} />
+                    </Button>
+                  }
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently deletes &ldquo;{note.title}&rdquo;. This can&apos;t be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <form action={deleteAction}>
+                      <AlertDialogAction
+                        type="submit"
+                        className="w-full bg-destructive text-white hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </form>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <FavoriteButton note={note} />
+          </div>
         </div>
       </div>
       <RenderTree node={note.tree} />
