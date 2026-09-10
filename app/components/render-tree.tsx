@@ -3,6 +3,7 @@ import { TreeNode } from "@/lib/tree"
 import { renderTikz } from "@/lib/tikz"
 import { highlightCode } from "@/lib/highlight"
 import { SvgBlock } from "@/app/components/svg-block"
+import { Callout } from "@/app/components/callout"
 
 // Walks a TreeNode produced by the backend's markdown parser and
 // dispatches on node.type — this file should never need to know
@@ -12,6 +13,19 @@ export async function RenderTree({ node }: { node: TreeNode }) {
   const children = node.children?.map((child, i) => (
     <RenderTree key={i} node={child} />
   ))
+
+  // Callouts carry their kind in the type name itself ("callout-todo")
+  // rather than in a field, so they can't be a case in the switch below —
+  // a prefix test is the whole point of that encoding, since it lets a
+  // kind this file has no specific styling for still render as a callout
+  // instead of falling through to the unsupported-node branch.
+  if (node.type.startsWith("callout-")) {
+    return (
+      <Callout kind={node.type.slice("callout-".length)} text={node.text}>
+        {children}
+      </Callout>
+    )
+  }
 
   switch (node.type) {
     case "root":
@@ -25,6 +39,12 @@ export async function RenderTree({ node }: { node: TreeNode }) {
     }
     case "paragraph":
       return <p>{children}</p>
+    case "blockquote":
+      // Tailwind Typography already styles a bare <blockquote> inside
+      // .prose, so this needs no classes of its own. Note that an
+      // Obsidian callout is also a blockquote in the source; the backend
+      // separates the two, and only a genuine quote reaches here.
+      return <blockquote>{children}</blockquote>
     case "textBlock":
       // Renders without its own container — see the backend's
       // tree.go comment on ast.KindTextBlock for why this exists as
