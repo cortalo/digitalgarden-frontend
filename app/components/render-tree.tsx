@@ -4,6 +4,7 @@ import { renderTikz } from "@/lib/tikz"
 import { highlightCode } from "@/lib/highlight"
 import { SvgBlock } from "@/app/components/svg-block"
 import { Callout } from "@/app/components/callout"
+import { TikzError } from "@/app/components/tikz-error"
 
 // Walks a TreeNode produced by the backend's markdown parser and
 // dispatches on node.type — this file should never need to know
@@ -103,8 +104,10 @@ export async function RenderTree({ node }: { node: TreeNode }) {
       // Plugin node, same tier as Excalidraw will be: Go only extracts the
       // raw TikZ source and tags the type (see CLAUDE.md's "Node
       // rendering" section), compiling it to SVG is a frontend job.
-      const svg = await renderTikz(node.text ?? "")
-      return <div dangerouslySetInnerHTML={{ __html: svg }} />
+      const source = node.text ?? ""
+      const result = await renderTikz(source)
+      if (!result.ok) return <TikzError source={source} reason={result.reason} />
+      return <div dangerouslySetInnerHTML={{ __html: result.svg }} />
     }
     case "svgBlock":
       // Raw SVG markup from the user's note (Obsidian's SVG Editor
