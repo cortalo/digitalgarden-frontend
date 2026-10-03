@@ -1,10 +1,11 @@
 import katex from "katex"
 import { TreeNode } from "@/lib/tree"
 import { renderTikz } from "@/lib/tikz"
+import { renderWavedrom } from "@/lib/wavedrom"
 import { highlightCode } from "@/lib/highlight"
 import { SvgBlock } from "@/app/components/svg-block"
 import { Callout } from "@/app/components/callout"
-import { TikzError } from "@/app/components/tikz-error"
+import { DiagramError } from "@/app/components/diagram-error"
 
 // Walks a TreeNode produced by the backend's markdown parser and
 // dispatches on node.type — this file should never need to know
@@ -106,7 +107,7 @@ export async function RenderTree({ node }: { node: TreeNode }) {
       // rendering" section), compiling it to SVG is a frontend job.
       const source = node.text ?? ""
       const result = await renderTikz(source)
-      if (!result.ok) return <TikzError source={source} reason={result.reason} />
+      if (!result.ok) return <DiagramError kind="TikZ" source={source} reason={result.reason} />
       return <div dangerouslySetInnerHTML={{ __html: result.svg }} />
     }
     case "svgBlock":
@@ -115,6 +116,19 @@ export async function RenderTree({ node }: { node: TreeNode }) {
       // tikzBlock. Sanitized client-side in SvgBlock — see lib/sanitize.ts
       // for why this can't happen here during server rendering.
       return <SvgBlock text={node.text ?? ""} />
+    case "wavedromBlock": {
+      // Plugin node like tikzBlock. The backend already normalized the
+      // author's WaveJSON to strict JSON; turning that into an SVG is a
+      // frontend job (lib/wavedrom.ts). The SVG still goes through
+      // SvgBlock's client-side sanitizing — WaveDrom's rich text can
+      // carry arbitrary markup, see lib/wavedrom.ts. overflow-x-auto
+      // rather than scaling to fit: a long timing diagram shrunk to the
+      // column width would make its labels unreadable.
+      const source = node.text ?? ""
+      const result = renderWavedrom(source)
+      if (!result.ok) return <DiagramError kind="WaveDrom" source={source} reason={result.reason} />
+      return <SvgBlock text={result.svg} className="my-6 overflow-x-auto" />
+    }
     default:
       // An unrecognized node type should be visible, not silently
       // dropped — same reasoning as the backend's "unknown" fallback.

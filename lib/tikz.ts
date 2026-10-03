@@ -1,13 +1,12 @@
 import { Worker } from "node:worker_threads"
 import { unstable_cache } from "next/cache"
+import type { DiagramResult } from "./diagram"
 // Never called in this process — compilation happens in the worker
 // below. The import is here only so Vercel's file tracing still sees
 // node-tikzjax as a dependency of this module and ships it (plus its
 // WASM/LaTeX assets) with the function; the worker's own require() of
 // it is inside a code string, which tracing can't follow.
 import "node-tikzjax"
-
-export type TikzResult = { ok: true; svg: string } | { ok: false; reason: string }
 
 // Some pictures make node-tikzjax take down the whole process rather
 // than reject: a circuitikz `node[op amp]` needs the font cmmib5, which
@@ -44,7 +43,7 @@ const TIMEOUT_MS = 20_000
 // One long-lived worker, replaced whenever it dies or times out.
 let worker: Worker | null = null
 
-function compileInWorker(source: string): Promise<TikzResult> {
+function compileInWorker(source: string): Promise<DiagramResult> {
   if (!worker) {
     worker = new Worker(WORKER_CODE, { eval: true })
     // An idle worker shouldn't keep the server process alive on its own.
@@ -62,7 +61,7 @@ function compileInWorker(source: string): Promise<TikzResult> {
       w.off("error", onError)
       w.off("exit", onExit)
     }
-    const onMessage = (result: TikzResult) => {
+    const onMessage = (result: DiagramResult) => {
       settle()
       resolve(result)
     }
@@ -98,7 +97,7 @@ function compileInWorker(source: string): Promise<TikzResult> {
 // a time.
 let queue: Promise<unknown> = Promise.resolve()
 
-function renderTikzUncached(source: string): Promise<TikzResult> {
+function renderTikzUncached(source: string): Promise<DiagramResult> {
   // Only fires on an actual cache miss (unstable_cache short-circuits
   // before calling this on a hit) — check Runtime Logs for repeats of
   // the same source with no new deploy in between to confirm Data
@@ -133,7 +132,7 @@ const renderTikzCached = unstable_cache(renderTikzUncached, ["render-tikz-v2"], 
 
 // Never rejects: one bad picture should degrade to a placeholder, not
 // fail the rest of the page.
-export async function renderTikz(source: string): Promise<TikzResult> {
+export async function renderTikz(source: string): Promise<DiagramResult> {
   try {
     return await renderTikzCached(source)
   } catch (err) {

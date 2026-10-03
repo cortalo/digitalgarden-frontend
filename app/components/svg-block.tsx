@@ -9,7 +9,20 @@ import { sanitizeSvg } from "@/lib/sanitize"
 // sanitizeSvg() isn't safe to call there (see lib/sanitize.ts). The
 // tradeoff: the diagram is empty until client JS hydrates, instead of
 // present in the initial server-rendered HTML.
-export function SvgBlock({ text }: { text: string }) {
+//
+// The default className is for svgBlock: Obsidian's SVG Editor plugin
+// exports these with a viewBox but no width/height attribute, which —
+// confirmed by actually rendering one — collapses the injected <svg> to
+// 0×0 rather than falling back to some default size, so it's forced to
+// fill the container at its own aspect ratio. Callers whose SVGs carry
+// their own width/height (WaveDrom) pass their own instead.
+export function SvgBlock({
+  text,
+  className = "[&>svg]:h-auto [&>svg]:w-full",
+}: {
+  text: string
+  className?: string
+}) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -18,9 +31,5 @@ export function SvgBlock({ text }: { text: string }) {
     }
   }, [text])
 
-  // Obsidian's SVG Editor plugin exports these with a viewBox but no
-  // width/height attribute, which — confirmed by actually rendering one —
-  // collapses the injected <svg> to 0×0 rather than falling back to some
-  // default size. Force it to fill the container at its own aspect ratio.
-  return <div ref={ref} className="[&>svg]:h-auto [&>svg]:w-full" />
+  return <div ref={ref} className={className} />
 }
